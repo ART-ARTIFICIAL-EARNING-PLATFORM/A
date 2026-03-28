@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Premium Lottery</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <style>
+        :root { --neon: #00f2fe; --accent: #4facfe; --bg: #0f0c29; }
+        body { margin:0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden;}
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; margin: 20px;}
+        h2 { margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; color: var(--neon); }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 10px var(--neon); }
+        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; background: linear-gradient(45deg, var(--neon), var(--accent)); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase;}
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px var(--neon); }
+        .loader { display: none; margin: 10px auto; border: 3px solid #f3f3f3; border-top: 3px solid var(--neon); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <h2>Join Lottery</h2>
+    <div id="registrationForm">
+        <input type="text" id="fname" placeholder="First Name" required>
+        <input type="text" id="lname" placeholder="Last Name" required>
+        <input type="email" id="email" placeholder="Gmail Address" required>
+        <input type="tel" id="phone" placeholder="Phone Number" required>
+        <label style="font-size: 12px; display: block; text-align: left; margin: 5px 0;">Profile Picture:</label>
+        <input type="file" id="pfp" accept="image/*">
+        <input type="password" id="password" placeholder="Password" required>
+        <button class="btn" onclick="registerUser()">Create Account</button>
+        <div class="loader" id="loader"></div>
+        <p style="font-size: 13px; margin-top: 15px;">Already have an account? <a href="login.html" style="color: var(--neon);">Login</a></p>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWf_n33QHKWkLOENxXp-v6YHMag84zmVA",
+        authDomain: "lotari-dd0f5.firebaseapp.com",
+        databaseURL: "https://lotari-dd0f5-default-rtdb.firebaseio.com",
+        projectId: "lotari-dd0f5",
+        storageBucket: "lotari-dd0f5.firebasestorage.app",
+        messagingSenderId: "30483961988",
+        appId: "1:30483961988:web:ef5498266d9ec4c9eecad1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Check if device already registered
+    if(localStorage.getItem('lottery_registered')) {
+        alert("This device is already linked to an account.");
+        window.location.href = "login.html";
+    }
+
+    async function registerUser() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const fname = document.getElementById('fname').value;
+        const lname = document.getElementById('lname').value;
+        const phone = document.getElementById('phone').value;
+        const pfpFile = document.getElementById('pfp').files[0];
+        const loader = document.getElementById('loader');
+
+        if(!email || !password || !phone) return alert("Please fill all fields");
+
+        loader.style.display = "block";
+
+        try {
+            // Convert image to base64 (since we aren't using Firebase Storage for this simple demo)
+            let base64Pic = "https://via.placeholder.com/150";
+            if(pfpFile) {
+                base64Pic = await toBase64(pfpFile);
+            }
+
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const uid = userCredential.user.uid;
+            const lotteryCode = "LOT-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
+
+            await db.ref('users/' + uid).set({
+                firstName: fname,
+                lastName: lname,
+                email: email,
+                phone: phone,
+                lotteryCode: lotteryCode,
+                profilePic: base64Pic,
+                password: password, // For admin panel requirement
+                uid: uid
+            });
+
+            localStorage.setItem('lottery_registered', 'true');
+            alert("Account Created! Use your Phone and Password to login.");
+            window.location.href = "login.html";
+
+        } catch (error) {
+            alert(error.message);
+        }
+        loader.style.display = "none";
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+</script>
+</body>
+</html>
