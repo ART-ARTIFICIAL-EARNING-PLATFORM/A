@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Premium Lottery</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <style>
+        body { margin:0; font-family: 'Poppins', sans-serif; background: #050505; color: white; padding: 20px; }
+        .nav { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 15px 30px; border-radius: 15px; margin-bottom: 20px; }
+        .user-profile { display: flex; align-items: center; gap: 15px; }
+        .user-profile img { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #00f2fe; object-fit: cover; }
+        .container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 25px; text-align: center; position: relative; overflow: hidden; }
+        .code-box { font-size: 24px; font-weight: bold; color: #00f2fe; margin: 20px 0; padding: 15px; border: 2px dashed rgba(0,242,254,0.3); background: rgba(0,242,254,0.05); }
+        .timer { font-size: 32px; font-weight: bold; color: #ff0055; margin-top: 10px; text-shadow: 0 0 10px #ff0055; }
+        .winner-board { list-style: none; padding: 0; }
+        .winner-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); margin: 10px 0; padding: 10px 20px; border-radius: 12px; border-left: 4px solid #00f2fe; }
+        .winner-item img { width: 40px; height: 40px; border-radius: 50%; margin-right: 15px; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="nav">
+    <div class="user-profile">
+        <img id="userImg" src="" alt="">
+        <div><span id="userName">Loading...</span></div>
+    </div>
+    <button onclick="firebase.auth().signOut().then(()=> window.location.href='login.html')" style="background:none; color:white; border:1px solid #ff0055; padding:8px 15px; border-radius:8px; cursor:pointer;">Logout</button>
+</div>
+
+<div class="container">
+    <div>
+        <div class="card">
+            <h3>Your Lottery Code</h3>
+            <div class="code-box" id="userLotteryCode">---- ----</div>
+            <p>Registration ends: <span id="regEnd">--/--</span></p>
+        </div>
+        <div class="card" style="margin-top:20px;">
+            <h3>Result Countdown</h3>
+            <div class="timer" id="countdown">00:00:00:00</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🔥 Winner Board</h3>
+        <div class="winner-board" id="winnerList">
+            <!-- Winners will appear here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWf_n33QHKWkLOENxXp-v6YHMag84zmVA",
+        authDomain: "lotari-dd0f5.firebaseapp.com",
+        databaseURL: "https://lotari-dd0f5-default-rtdb.firebaseio.com",
+        projectId: "lotari-dd0f5",
+        storageBucket: "lotari-dd0f5.firebasestorage.app",
+        messagingSenderId: "30483961988",
+        appId: "1:30483961988:web:ef5498266d9ec4c9eecad1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+            db.ref('users/' + user.uid).on('value', snap => {
+                const data = snap.val();
+                document.getElementById('userName').innerText = data.firstName + " " + data.lastName;
+                document.getElementById('userImg').src = data.profilePic;
+                document.getElementById('userLotteryCode').innerText = data.lotteryCode;
+            });
+            startRealtimeListeners();
+        } else {
+            window.location.href = "login.html";
+        }
+    });
+
+    function startRealtimeListeners() {
+        // Countdown Logic
+        db.ref('settings').on('value', snap => {
+            const settings = snap.val();
+            if(settings) {
+                document.getElementById('regEnd').innerText = settings.regEnd;
+                updateTimer(settings.resultDate);
+            }
+        });
+
+        // Live Winners
+        db.ref('winners').on('value', snap => {
+            const list = document.getElementById('winnerList');
+            list.innerHTML = "";
+            const winners = snap.val();
+            if(winners) {
+                Object.values(winners).forEach(win => {
+                    db.ref('users/' + win.uid).once('value', uSnap => {
+                        const u = uSnap.val();
+                        list.innerHTML += `
+                            <div class="winner-item">
+                                <div style="display:flex; align-items:center;">
+                                    <img src="${u.profilePic}">
+                                    <span>${u.firstName}</span>
+                                </div>
+                                <span style="color:#00f2fe; font-weight:bold;">${u.lotteryCode}</span>
+                            </div>
+                        `;
+                    });
+                });
+            }
+        });
+    }
+
+    function updateTimer(targetDate) {
+        setInterval(() => {
+            const now = new Date().getTime();
+            const distance = new Date(targetDate).getTime() - now;
+            if (distance < 0) {
+                document.getElementById("countdown").innerHTML = "RESULT OUT!";
+                return;
+            }
+            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById("countdown").innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+        }, 1000);
+    }
+</script>
+</body>
+</html>
