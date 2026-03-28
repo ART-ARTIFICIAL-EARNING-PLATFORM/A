@@ -3,39 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Premium Lottery</title>
+    <title>VIP Registration - Mega Lottery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        :root { --neon: #00f2fe; --accent: #4facfe; --bg: #0f0c29; }
-        body { margin:0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden;}
-        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); width: 100%; max-width: 400px; text-align: center; margin: 20px;}
-        h2 { margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; color: var(--neon); }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--neon); box-shadow: 0 0 10px var(--neon); }
-        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; background: linear-gradient(45deg, var(--neon), var(--accent)); color: #000; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase;}
-        .btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px var(--neon); }
-        .loader { display: none; margin: 10px auto; border: 3px solid #f3f3f3; border-top: 3px solid var(--neon); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        :root {
+            --gold: #ffcf40;
+            --gold-grad: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728);
+            --dark: #0a0a0c;
+        }
+
+        body {
+            margin: 0; font-family: 'Poppins', sans-serif;
+            background: var(--dark);
+            color: white;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow-x: hidden;
+            background-image: radial-gradient(circle at top right, rgba(255, 207, 64, 0.1), transparent);
+        }
+
+        /* Floating Money Background */
+        .money-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; opacity: 0.2; }
+        .coin { position: absolute; bottom: -50px; background: var(--gold-grad); border-radius: 50%; animation: float 6s linear infinite; }
+        @keyframes float { 0% { transform: translateY(0) rotate(0); opacity: 0; } 50% { opacity: 0.8; } 100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px; border-radius: 30px;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center; position: relative;
+        }
+
+        .glass-card::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-25deg); transition: 0.5s;
+        }
+        .glass-card:hover::before { left: 150%; }
+
+        h2 { font-family: 'Montserrat', sans-serif; font-weight: 900; letter-spacing: 2px; color: var(--gold); margin-bottom: 30px; }
+
+        /* Premium Profile Pic Upload */
+        .pfp-container {
+            position: relative; width: 110px; height: 110px; margin: 0 auto 25px;
+        }
+        .pfp-preview {
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 3px solid var(--gold); object-fit: cover;
+            box-shadow: 0 0 20px rgba(255, 207, 64, 0.3);
+            background: #151515;
+        }
+        .upload-btn {
+            position: absolute; bottom: 5px; right: 5px;
+            background: var(--gold-grad); border-radius: 50%;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; border: 2px solid var(--dark); color: black; font-weight: bold;
+        }
+
+        .input-group { margin-bottom: 15px; text-align: left; }
+        input {
+            width: 100%; padding: 14px 20px; background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            color: white; outline: none; transition: 0.3s; box-sizing: border-box;
+        }
+        input:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 207, 64, 0.2); }
+
+        .btn-prime {
+            width: 100%; padding: 16px; margin-top: 15px; border: none; border-radius: 12px;
+            background: var(--gold-grad); color: black; font-weight: 900;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.4s;
+        }
+        .btn-prime:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 207, 64, 0.4); }
+
+        .loader { display: none; width: 25px; height: 25px; border: 3px solid #000; border-top: 3px solid transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 10px auto; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<div class="money-bg" id="moneyBg"></div>
+
 <div class="glass-card">
-    <h2>Join Lottery</h2>
-    <div id="registrationForm">
-        <input type="text" id="fname" placeholder="First Name" required>
-        <input type="text" id="lname" placeholder="Last Name" required>
-        <input type="email" id="email" placeholder="Gmail Address" required>
-        <input type="tel" id="phone" placeholder="Phone Number" required>
-        <label style="font-size: 12px; display: block; text-align: left; margin: 5px 0;">Profile Picture:</label>
-        <input type="file" id="pfp" accept="image/*">
-        <input type="password" id="password" placeholder="Password" required>
-        <button class="btn" onclick="registerUser()">Create Account</button>
-        <div class="loader" id="loader"></div>
-        <p style="font-size: 13px; margin-top: 15px;">Already have an account? <a href="login.html" style="color: var(--neon);">Login</a></p>
+    <h2>JOIN VIP CLUB</h2>
+    
+    <div class="pfp-container">
+        <img id="preview" class="pfp-preview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+        <label for="pfp-input" class="upload-btn">+</label>
+        <input type="file" id="pfp-input" hidden accept="image/*">
     </div>
+
+    <div class="input-group">
+        <input type="text" id="fname" placeholder="First Name">
+    </div>
+    <div class="input-group">
+        <input type="text" id="lname" placeholder="Last Name">
+    </div>
+    <div class="input-group">
+        <input type="email" id="email" placeholder="VIP Email (Gmail)">
+    </div>
+    <div class="input-group">
+        <input type="tel" id="phone" placeholder="Phone Number">
+    </div>
+    <div class="input-group">
+        <input type="password" id="pass" placeholder="Security Password">
+    </div>
+
+    <button class="btn-prime" onclick="register()">Create Account</button>
+    <div class="loader" id="loader"></div>
+
+    <p style="font-size: 13px; margin-top: 20px; color: #888;">
+        Member already? <a href="login.html" style="color: var(--gold); text-decoration: none;">Login Now</a>
+    </p>
 </div>
 
 <script>
@@ -52,63 +135,68 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // Check if device already registered
-    if(localStorage.getItem('lottery_registered')) {
-        alert("This device is already linked to an account.");
+    // Money Background
+    function createCoins() {
+        const bg = document.getElementById('moneyBg');
+        const coin = document.createElement('div');
+        coin.className = 'coin';
+        coin.style.left = Math.random() * 100 + 'vw';
+        coin.style.width = coin.style.height = Math.random() * 15 + 10 + 'px';
+        bg.appendChild(coin);
+        setTimeout(() => coin.remove(), 6000);
+    }
+    setInterval(createCoins, 400);
+
+    // Profile Pic Preview
+    document.getElementById('pfp-input').onchange = e => {
+        const reader = new FileReader();
+        reader.onload = () => document.getElementById('preview').src = reader.result;
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    if(localStorage.getItem('lottery_device')) {
+        alert("This device already has an account.");
         window.location.href = "login.html";
     }
 
-    async function registerUser() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const fname = document.getElementById('fname').value;
-        const lname = document.getElementById('lname').value;
-        const phone = document.getElementById('phone').value;
-        const pfpFile = document.getElementById('pfp').files[0];
+    async function register() {
+        const btn = document.querySelector('.btn-prime');
         const loader = document.getElementById('loader');
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+        const pfpInput = document.getElementById('pfp-input');
 
-        if(!email || !password || !phone) return alert("Please fill all fields");
+        if(!email || !pass || !pfpInput.files[0]) return alert("Fill all fields & upload photo!");
 
+        btn.style.display = "none";
         loader.style.display = "block";
 
         try {
-            // Convert image to base64 (since we aren't using Firebase Storage for this simple demo)
-            let base64Pic = "https://via.placeholder.com/150";
-            if(pfpFile) {
-                base64Pic = await toBase64(pfpFile);
-            }
+            const reader = new FileReader();
+            reader.readAsDataURL(pfpInput.files[0]);
+            reader.onload = async () => {
+                const base64Pic = reader.result;
+                const userCred = await auth.createUserWithEmailAndPassword(email, pass);
+                const uid = userCred.user.uid;
+                const lotCode = "VIP-" + Math.floor(100000 + Math.random() * 900000);
 
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const uid = userCredential.user.uid;
-            const lotteryCode = "LOT-" + Math.floor(1000 + Math.random() * 9000) + "-" + Math.floor(1000 + Math.random() * 9000);
+                await db.ref('users/' + uid).set({
+                    firstName: document.getElementById('fname').value,
+                    lastName: document.getElementById('lname').value,
+                    email: email,
+                    phone: document.getElementById('phone').value,
+                    password: pass,
+                    profilePic: base64Pic,
+                    lotteryCode: lotCode,
+                    uid: uid
+                });
 
-            await db.ref('users/' + uid).set({
-                firstName: fname,
-                lastName: lname,
-                email: email,
-                phone: phone,
-                lotteryCode: lotteryCode,
-                profilePic: base64Pic,
-                password: password, // For admin panel requirement
-                uid: uid
-            });
-
-            localStorage.setItem('lottery_registered', 'true');
-            alert("Account Created! Use your Phone and Password to login.");
-            window.location.href = "login.html";
-
-        } catch (error) {
-            alert(error.message);
-        }
-        loader.style.display = "none";
+                localStorage.setItem('lottery_device', 'true');
+                alert("Account Created!");
+                window.location.href = "login.html";
+            };
+        } catch(e) { alert(e.message); btn.style.display = "block"; loader.style.display = "none"; }
     }
-
-    const toBase64 = file => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
 </script>
 </body>
-</html>
+            </html>
