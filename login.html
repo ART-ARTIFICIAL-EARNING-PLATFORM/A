@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Premium Lottery</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+    <style>
+        :root { --neon: #f27121; --accent: #e94057; --bg: #0f0c29; }
+        body { margin:0; font-family: 'Segoe UI', sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
+        h2 { color: var(--neon); text-transform: uppercase; letter-spacing: 2px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; outline: none; box-sizing: border-box;}
+        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; background: linear-gradient(45deg, #f27121, #e94057); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:hover { box-shadow: 0 0 20px #e94057; }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <h2>Login</h2>
+    <input type="tel" id="loginPhone" placeholder="Phone Number">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button class="btn" onclick="login()">Enter Dashboard</button>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBWf_n33QHKWkLOENxXp-v6YHMag84zmVA",
+        authDomain: "lotari-dd0f5.firebaseapp.com",
+        databaseURL: "https://lotari-dd0f5-default-rtdb.firebaseio.com",
+        projectId: "lotari-dd0f5",
+        storageBucket: "lotari-dd0f5.firebasestorage.app",
+        messagingSenderId: "30483961988",
+        appId: "1:30483961988:web:ef5498266d9ec4c9eecad1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    async function login() {
+        const phone = document.getElementById('loginPhone').value;
+        const pass = document.getElementById('loginPass').value;
+
+        // Find email associated with this phone in DB
+        const snapshot = await db.ref('users').orderByChild('phone').equalTo(phone).once('value');
+        if(!snapshot.exists()) {
+            alert("Phone number not found!");
+            return;
+        }
+
+        const userData = Object.values(snapshot.val())[0];
+        try {
+            await auth.signInWithEmailAndPassword(userData.email, pass);
+            window.location.href = "home.html";
+        } catch(e) {
+            alert("Invalid Password!");
+        }
+    }
+</script>
+</body>
+</html>
