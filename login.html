@@ -3,31 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Premium Lottery</title>
+    <title>VIP Login - Mega Lottery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <style>
-        :root { --neon: #f27121; --accent: #e94057; --bg: #0f0c29; }
-        body { margin:0; font-family: 'Segoe UI', sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px; width: 320px; text-align: center; }
-        h2 { color: var(--neon); text-transform: uppercase; letter-spacing: 2px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; outline: none; box-sizing: border-box;}
-        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; background: linear-gradient(45deg, #f27121, #e94057); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn:hover { box-shadow: 0 0 20px #e94057; }
+        body {
+            margin: 0; font-family: 'Montserrat', sans-serif;
+            background: #0a0a0c; color: white;
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(20px);
+            padding: 50px 40px; border-radius: 30px;
+            width: 350px; text-align: center;
+            border: 1px solid rgba(255,207,64,0.2);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        }
+        .icon-circle {
+            width: 80px; height: 80px; background: linear-gradient(45deg, #bf953f, #fcf6ba);
+            border-radius: 50%; margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; color: black; box-shadow: 0 0 20px rgba(255, 207, 64, 0.4);
+        }
+        input {
+            width: 100%; padding: 15px; margin-bottom: 15px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: white; outline: none; box-sizing: border-box;
+        }
+        input:focus { border-color: #ffcf40; }
+        .btn-login {
+            width: 100%; padding: 16px; background: linear-gradient(45deg, #bf953f, #fcf6ba);
+            border: none; border-radius: 12px; font-weight: 900; cursor: pointer;
+            transition: 0.3s; margin-top: 10px;
+        }
+        .btn-login:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255, 207, 64, 0.5); }
     </style>
 </head>
 <body>
 
-<div class="glass-card">
-    <h2>Login</h2>
-    <input type="tel" id="loginPhone" placeholder="Phone Number">
-    <input type="password" id="loginPass" placeholder="Password">
-    <button class="btn" onclick="login()">Enter Dashboard</button>
+<div class="login-card">
+    <div class="icon-circle">💎</div>
+    <h2 style="color:#ffcf40; margin-bottom:30px;">VIP LOGIN</h2>
+    <input type="tel" id="logPhone" placeholder="Phone Number">
+    <input type="password" id="logPass" placeholder="Password">
+    <button class="btn-login" onclick="login()">ENTER DASHBOARD</button>
+    <p style="font-size:12px; margin-top:20px; color:#666;">
+        Don't have access? <a href="index.html" style="color:#ffcf40; text-decoration:none;">Apply Now</a>
+    </p>
 </div>
 
 <script>
-    const firebaseConfig = {
+    firebase.initializeApp({
         apiKey: "AIzaSyBWf_n33QHKWkLOENxXp-v6YHMag84zmVA",
         authDomain: "lotari-dd0f5.firebaseapp.com",
         databaseURL: "https://lotari-dd0f5-default-rtdb.firebaseio.com",
@@ -35,29 +64,21 @@
         storageBucket: "lotari-dd0f5.firebasestorage.app",
         messagingSenderId: "30483961988",
         appId: "1:30483961988:web:ef5498266d9ec4c9eecad1"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
+    });
 
     async function login() {
-        const phone = document.getElementById('loginPhone').value;
-        const pass = document.getElementById('loginPass').value;
+        const phone = document.getElementById('logPhone').value;
+        const pass = document.getElementById('logPass').value;
+        const db = firebase.database();
 
-        // Find email associated with this phone in DB
-        const snapshot = await db.ref('users').orderByChild('phone').equalTo(phone).once('value');
-        if(!snapshot.exists()) {
-            alert("Phone number not found!");
-            return;
-        }
+        const snap = await db.ref('users').orderByChild('phone').equalTo(phone).once('value');
+        if(!snap.exists()) return alert("Not a VIP member!");
 
-        const userData = Object.values(snapshot.val())[0];
+        const user = Object.values(snap.val())[0];
         try {
-            await auth.signInWithEmailAndPassword(userData.email, pass);
+            await firebase.auth().signInWithEmailAndPassword(user.email, pass);
             window.location.href = "home.html";
-        } catch(e) {
-            alert("Invalid Password!");
-        }
+        } catch(e) { alert("Wrong Password!"); }
     }
 </script>
 </body>
